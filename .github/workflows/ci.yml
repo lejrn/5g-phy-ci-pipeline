@@ -90,11 +90,11 @@ jobs:
     
     - name: Test Docker image
       run: |
-        docker run --rm 5g-phy-ci:latest poetry run pytest -v
+        docker run --rm --entrypoint="" 5g-phy-ci:latest poetry run pytest -v
     
     - name: Run simulation in Docker
       run: |
-        docker run --rm 5g-phy-ci:latest poetry run radio-sim --bits 1000 --snr-start 15 --snr-stop 20
+        docker run --rm 5g-phy-ci:latest --bits 1000 --snr-start 15 --snr-stop 20
 
   robot:
     runs-on: ubuntu-latest
