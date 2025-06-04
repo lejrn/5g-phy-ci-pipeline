@@ -10,8 +10,8 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # 1. Initialization - Setup environment, linting, validation
-  init:
+  # 1. Local tests and validation (Poetry-based) + Robot Framework tests
+  local-tests:
     runs-on: ubuntu-latest
     
     steps:
@@ -51,41 +51,6 @@ jobs:
     
     - name: Run type checking
       run: poetry run mypy radio_sim --ignore-missing-imports --disable-error-code=no-any-return
-
-  # 2. Local simulations (Poetry-based tests)
-  local-simulations:
-    runs-on: ubuntu-latest
-    needs: init
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-    
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v3
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
-    
-    - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --no-root
-    
-    - name: Install project
-      run: poetry install --no-interaction
     
     - name: Run unit tests
       run: |
@@ -102,17 +67,30 @@ jobs:
       run: |
         poetry run radio-sim --bits 5000 --snr-start 10 --snr-stop 20 --snr-step 2
     
+    - name: Run Robot Framework tests (local)
+      run: |
+        poetry run robot --outputdir robot/results robot/simulation_tests.robot
+    
     - name: Upload test coverage artifacts
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: coverage-report
         path: htmlcov/
+    
+    - name: Upload Robot Framework results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: robot-results
+        path: |
+          robot/results/log.html
+          robot/results/output.xml
+          robot/results/report.html
 
-  # 3. Docker build (parallel with local-simulations)
+  # 2. Docker build (parallel with local-tests)
   docker-build:
     runs-on: ubuntu-latest
-    needs: init
     
     steps:
     - name: Checkout code
@@ -125,7 +103,7 @@ jobs:
       run: |
         docker build -t 5g-phy-ci:latest .
 
-  # 4. Docker tests (depends on docker-build completion)
+  # 3. Docker tests (depends on docker-build completion) + Robot Docker tests
   docker-tests:
     runs-on: ubuntu-latest
     needs: docker-build
@@ -149,24 +127,16 @@ jobs:
       run: |
         docker run --rm 5g-phy-ci:latest --bits 1000 --snr-start 15 --snr-stop 20
     
-    - name: Set up Python for Robot Docker tests
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install Poetry for Robot Docker tests
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-    
-    - name: Install dependencies for Robot Docker tests
-      run: poetry install --no-interaction
-    
     - name: Run Robot Framework Docker tests
       run: |
-        poetry run robot --outputdir robot/results robot/simulation_tests_docker.robot
+        docker run --rm --entrypoint="" 5g-phy-ci:latest poetry run robot --outputdir /tmp/robot-results robot/simulation_tests_docker.robot
+    
+    - name: Copy Robot results from container
+      run: |
+        # Create a temporary container to copy results
+        docker create --name temp-container 5g-phy-ci:latest
+        docker cp temp-container:/tmp/robot-results ./robot-docker-results
+        docker rm temp-container
     
     - name: Upload Robot Framework Docker results
       uses: actions/upload-artifact@v4
@@ -174,44 +144,6 @@ jobs:
       with:
         name: robot-docker-results
         path: |
-          robot/results/log.html
-          robot/results/output.xml
-          robot/results/report.html
-
-  # 5. Local Robot tests (depends on local-simulations completion)
-  local-robot-tests:
-    runs-on: ubuntu-latest
-    needs: local-simulations
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-    
-    - name: Install dependencies
-      run: poetry install --no-interaction
-    
-    - name: Run Robot Framework tests (non-Docker)
-      run: |
-        poetry run robot --outputdir robot/results robot/simulation_tests.robot
-    
-    - name: Upload Robot Framework results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: robot-results
-        path: |
-          robot/results/log.html
-          robot/results/output.xml
-          robot/results/report.html
+          robot-docker-results/log.html
+          robot-docker-results/output.xml
+          robot-docker-results/report.html
