@@ -70,10 +70,6 @@ class OFDMSimulator:
             bits: Input bits array
             
         Returns:
-            Complex constellation symbols
-        """
-            
-        Returns:
             Complex symbols array
         """
         # Reshape bits into groups
