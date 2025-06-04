@@ -1,6 +1,6 @@
 # 5G-PHY-CI-Pipeline
 
-[![CI Pipeline](https://github.com/yourusername/5g-phy-ci-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/5g-phy-ci-pipeline/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/lejrn/5g-phy-ci-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/lejrn/5g-phy-ci-pipeline/actions/workflows/ci.yml)
 
 A test pipeline for radio signal code. A Python script simulates OFDM and LDPC/Turbo coding, PyTest checks the error rate, Robot Framework turns test logs into a clean HTML report. All of this runs automatically in CI and pushes results as build artifacts.
 

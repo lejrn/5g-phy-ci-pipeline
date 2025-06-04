@@ -119,6 +119,10 @@ jobs:
     - name: Install dependencies
       run: poetry install --no-interaction
     
+    - name: Build Docker image for Robot tests
+      run: |
+        docker build -t 5g-phy-ci:latest .
+    
     - name: Run Robot Framework tests
       run: |
         poetry run robot --outputdir robot/results robot/

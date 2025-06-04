@@ -27,8 +27,6 @@ QPSK Simulation Should Complete Successfully
     ...    --snr-stop    ${MAX_SNR}
     ...    --snr-step    ${SNR_STEP}
     ...    timeout=60s
-    ...    cwd=/home/lrn/Repos/5g-phy-ci-pipeline
-    ...    env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline
     
     Should Be Equal As Integers    ${result.rc}    0
     Should Contain    ${result.stdout}    Simulation completed successfully
@@ -47,8 +45,6 @@ QPSK Simulation Should Complete Successfully
     ...    --snr-stop    25
     ...    --snr-step    ${SNR_STEP}
     ...    timeout=60s
-    ...    cwd=/home/lrn/Repos/5g-phy-ci-pipeline
-    ...    env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline
     
     Should Be Equal As Integers    ${result.rc}    0
     Should Contain    ${result.stdout}    Simulation completed successfully
@@ -68,8 +64,6 @@ BER Performance Should Meet Requirements
     ...    --snr-stop    20
     ...    --snr-step    1
     ...    timeout=120s
-    ...    cwd=/home/lrn/Repos/5g-phy-ci-pipeline
-    ...    env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline
     
     Should Be Equal As Integers    ${result.rc}    0
     
@@ -93,8 +87,6 @@ Simulation Should Handle Different Bit Counts
         ...    --snr-stop    20
         ...    --snr-step    5
         ...    timeout=60s
-        ...    cwd=/home/lrn/Repos/5g-phy-ci-pipeline
-        ...    env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline
         
         Should Be Equal As Integers    ${result.rc}    0
         Should Contain    ${result.stdout}    Bits per simulation: ${bits}
@@ -109,8 +101,6 @@ Help Option Should Work
     ...    @{BASE_ARGS}
     ...    --help
     ...    timeout=30s
-    ...    cwd=/home/lrn/Repos/5g-phy-ci-pipeline
-    ...    env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline
     
     Should Be Equal As Integers    ${result.rc}    0
     Should Contain    ${result.stdout}    5G PHY OFDM Simulation Pipeline
@@ -127,8 +117,6 @@ Invalid Parameters Should Fail Gracefully
     ...    @{BASE_ARGS}
     ...    --modulation    INVALID
     ...    timeout=30s
-    ...    cwd=/home/lrn/Repos/5g-phy-ci-pipeline
-    ...    env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline
     
     Should Not Be Equal As Integers    ${result.rc}    0
     Should Contain    ${result.stderr}    invalid choice
