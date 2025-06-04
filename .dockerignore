@@ -1,0 +1,18 @@
+# Docker ignore file
+.git
+.gitignore
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.DS_Store
+*.log
+robot/log.html
+robot/output.xml
+robot/report.html
+.github/
