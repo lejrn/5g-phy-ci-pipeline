@@ -1,0 +1,209 @@
+name: 5G PHY CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+    
+    - name: Install project
+      run: poetry install --no-interaction
+    
+    - name: Run linting
+      run: |
+        poetry run flake8 radio_sim tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 radio_sim tests --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+    
+    - name: Run type checking
+      run: poetry run mypy radio_sim --ignore-missing-imports --disable-error-code=no-any-return
+    
+    - name: Run unit tests
+      run: |
+        poetry run pytest tests/ -v --tb=short --cov=radio_sim --cov-report=xml --cov-report=html
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Run simulation
+      run: |
+        poetry run radio-sim --bits 5000 --snr-start 10 --snr-stop 20 --snr-step 2
+    
+    - name: Upload test coverage artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: coverage-report
+        path: htmlcov/
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t 5g-phy-ci:latest .
+    
+    - name: Test Docker image
+      run: |
+        docker run --rm 5g-phy-ci:latest poetry run pytest -v
+    
+    - name: Run simulation in Docker
+      run: |
+        docker run --rm 5g-phy-ci:latest poetry run radio-sim --bits 1000 --snr-start 15 --snr-stop 20
+
+  robot:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Install dependencies
+      run: poetry install --no-interaction
+    
+    - name: Run Robot Framework tests
+      run: |
+        poetry run robot --outputdir robot/results robot/
+    
+    - name: Upload Robot Framework results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: robot-results
+        path: |
+          robot/results/log.html
+          robot/results/output.xml
+          robot/results/report.html
+
+  performance:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Install dependencies
+      run: poetry install --no-interaction
+    
+    - name: Run performance tests
+      run: |
+        poetry run python -c "
+        from radio_sim.main import run_simulation
+        import sys
+        
+        # Run comprehensive BER test
+        results = run_simulation('QPSK', 50000, (10, 25, 1), 42)
+        
+        # Check performance requirements
+        high_snr_mask = results['snr_values'] >= 20
+        high_snr_bers = results['ber_values'][high_snr_mask]
+        
+        if any(ber > 1e-6 for ber in high_snr_bers):
+            print('FAIL: Performance requirements not met')
+            sys.exit(1)
+        else:
+            print('PASS: Performance requirements met')
+        "
+    
+    - name: Generate performance report
+      run: |
+        poetry run python -c "
+        import numpy as np
+        from radio_sim.main import run_simulation
+        import json
+        
+        # Generate detailed performance data
+        qpsk_results = run_simulation('QPSK', 20000, (0, 25, 1), 42)
+        qam16_results = run_simulation('16QAM', 20000, (0, 30, 1), 42)
+        
+        report = {
+            'qpsk': {
+                'snr_db': qpsk_results['snr_values'].tolist(),
+                'ber': qpsk_results['ber_values'].tolist()
+            },
+            '16qam': {
+                'snr_db': qam16_results['snr_values'].tolist(),
+                'ber': qam16_results['ber_values'].tolist()
+            }
+        }
+        
+        with open('performance_report.json', 'w') as f:
+            json.dump(report, f, indent=2)
+        "
+    
+    - name: Upload performance report
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-report
+        path: performance_report.json
