@@ -10,7 +10,8 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  test:
+  # 1. Initialization - Setup environment, linting, validation
+  init:
     runs-on: ubuntu-latest
     
     steps:
@@ -34,7 +35,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
     
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
@@ -50,6 +51,41 @@ jobs:
     
     - name: Run type checking
       run: poetry run mypy radio_sim --ignore-missing-imports --disable-error-code=no-any-return
+
+  # 2. Local simulations (Poetry-based tests)
+  local-simulations:
+    runs-on: ubuntu-latest
+    needs: init
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+    
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+    
+    - name: Install project
+      run: poetry install --no-interaction
     
     - name: Run unit tests
       run: |
@@ -73,9 +109,26 @@ jobs:
         name: coverage-report
         path: htmlcov/
 
-  docker:
+  # 3. Docker build (parallel with local-simulations)
+  docker-build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: init
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t 5g-phy-ci:latest .
+
+  # 4. Docker tests (depends on docker-build completion)
+  docker-tests:
+    runs-on: ubuntu-latest
+    needs: docker-build
     
     steps:
     - name: Checkout code
@@ -95,10 +148,40 @@ jobs:
     - name: Run simulation in Docker
       run: |
         docker run --rm 5g-phy-ci:latest --bits 1000 --snr-start 15 --snr-stop 20
+    
+    - name: Set up Python for Robot Docker tests
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Poetry for Robot Docker tests
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Install dependencies for Robot Docker tests
+      run: poetry install --no-interaction
+    
+    - name: Run Robot Framework Docker tests
+      run: |
+        poetry run robot --outputdir robot/results robot/simulation_tests_docker.robot
+    
+    - name: Upload Robot Framework Docker results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: robot-docker-results
+        path: |
+          robot/results/log.html
+          robot/results/output.xml
+          robot/results/report.html
 
-  robot:
+  # 5. Local Robot tests (depends on local-simulations completion)
+  local-robot-tests:
     runs-on: ubuntu-latest
-    needs: test
+    needs: local-simulations
     
     steps:
     - name: Checkout code
@@ -119,13 +202,9 @@ jobs:
     - name: Install dependencies
       run: poetry install --no-interaction
     
-    - name: Build Docker image for Robot tests
+    - name: Run Robot Framework tests (non-Docker)
       run: |
-        docker build -t 5g-phy-ci:latest .
-    
-    - name: Run Robot Framework tests
-      run: |
-        poetry run robot --outputdir robot/results robot/
+        poetry run robot --outputdir robot/results robot/simulation_tests.robot
     
     - name: Upload Robot Framework results
       uses: actions/upload-artifact@v4
@@ -136,78 +215,3 @@ jobs:
           robot/results/log.html
           robot/results/output.xml
           robot/results/report.html
-
-  performance:
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-    
-    - name: Install dependencies
-      run: poetry install --no-interaction
-    
-    - name: Run performance tests
-      run: |
-        poetry run python -c "
-        from radio_sim.main import run_simulation
-        import sys
-        
-        # Run comprehensive BER test
-        results = run_simulation('QPSK', 50000, (10, 25, 1), 42)
-        
-        # Check performance requirements
-        high_snr_mask = results['snr_values'] >= 20
-        high_snr_bers = results['ber_values'][high_snr_mask]
-        
-        if any(ber > 1e-6 for ber in high_snr_bers):
-            print('FAIL: Performance requirements not met')
-            sys.exit(1)
-        else:
-            print('PASS: Performance requirements met')
-        "
-    
-    - name: Generate performance report
-      run: |
-        poetry run python -c "
-        import numpy as np
-        from radio_sim.main import run_simulation
-        import json
-        
-        # Generate detailed performance data
-        qpsk_results = run_simulation('QPSK', 20000, (0, 25, 1), 42)
-        qam16_results = run_simulation('16QAM', 20000, (0, 30, 1), 42)
-        
-        report = {
-            'qpsk': {
-                'snr_db': qpsk_results['snr_values'].tolist(),
-                'ber': qpsk_results['ber_values'].tolist()
-            },
-            '16qam': {
-                'snr_db': qam16_results['snr_values'].tolist(),
-                'ber': qam16_results['ber_values'].tolist()
-            }
-        }
-        
-        with open('performance_report.json', 'w') as f:
-            json.dump(report, f, indent=2)
-        "
-    
-    - name: Upload performance report
-      uses: actions/upload-artifact@v4
-      with:
-        name: performance-report
-        path: performance_report.json

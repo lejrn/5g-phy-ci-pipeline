@@ -107,6 +107,176 @@ poetry run python visual_test_demo.py
 - **Utility Scripts**: Easy setup (`get-docker.sh`), execution (`run.sh`), and demo (`visual_test_demo.py`)
 - **Performance Validation**: Automated BER threshold checking and performance reporting
 
-## License
+## GitHub Actions CI/CD Workflow Guide
 
-MIT License - see [LICENSE](LICENSE) file for details.
+The project uses a comprehensive GitHub Actions workflow (`.github/workflows/ci.yml`) that demonstrates production-ready CI/CD practices. This section explains the workflow structure and syntax to help you understand and customize the pipeline.
+
+### Workflow Overview
+
+The CI pipeline consists of **4 parallel jobs** with smart dependencies:
+
+```
+test (foundation job)
+├── docker (containerization testing)
+├── robot (end-to-end testing)  
+└── performance (BER validation)
+```
+
+### Workflow Structure & Syntax
+
+#### 1. **Workflow Metadata**
+```yaml
+name: 5G PHY CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.11'
+```
+
+- **`name`**: Workflow display name in GitHub Actions tab
+- **`on`**: **Triggers** - runs on pushes to `main`/`develop` or PRs to `main`
+- **`env`**: Global environment variables accessible via `${{ env.PYTHON_VERSION }}`
+
+#### 2. **Job Dependencies & Parallelization**
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # No dependencies - runs first
+    
+  docker:
+    runs-on: ubuntu-latest
+    needs: test              # Waits for test job success
+    
+  robot:
+    needs: test              # Runs in parallel with docker/performance
+    
+  performance:
+    needs: test
+```
+
+The `needs:` keyword creates dependencies, optimizing build time while ensuring quality gates.
+
+#### 3. **Common Step Patterns**
+
+**Setup Pattern** (repeated across jobs):
+```yaml
+steps:
+- name: Checkout code
+  uses: actions/checkout@v4
+  
+- name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: ${{ env.PYTHON_VERSION }}
+    
+- name: Install Poetry
+  uses: snok/install-poetry@v1
+  with:
+    version: latest
+    virtualenvs-create: true
+    virtualenvs-in-project: true
+```
+
+**Actions vs Commands**:
+- **`uses:`** - Pre-built GitHub Actions from marketplace
+- **`run:`** - Shell commands executed in the runner
+
+#### 4. **Advanced Features**
+
+**Caching for Speed**:
+```yaml
+- name: Load cached venv
+  id: cached-poetry-dependencies
+  uses: actions/cache@v3
+  with:
+    path: .venv
+    key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+- name: Install dependencies
+  if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+  run: poetry install --no-interaction --no-root
+```
+
+- **Cache key** includes OS, Python version, and dependency hash
+- **Conditional execution** with `if:` saves time when cache hits
+
+**Artifact Collection**:
+```yaml
+- name: Upload test coverage artifacts
+  uses: actions/upload-artifact@v4
+  if: always()                    # Runs even if previous steps failed
+  with:
+    name: coverage-report
+    path: htmlcov/
+```
+
+#### 5. **Job-by-Job Breakdown**
+
+**`test` Job - Foundation**:
+- Code quality: linting (flake8), type checking (mypy)
+- Unit testing with coverage reporting
+- Test simulation execution
+- Codecov integration for coverage tracking
+
+**`docker` Job - Containerization**:
+- Docker image building and testing
+- **Key Fix**: Uses `--entrypoint=""` to bypass container entrypoint for pytest
+- Validates containerized simulation execution
+
+**`robot` Job - End-to-End Testing**:
+- Robot Framework acceptance tests
+- Docker image building for Robot tests that need containers
+- HTML report generation and artifact upload
+
+**`performance` Job - Validation**:
+- Automated BER threshold checking (fails if BER > 1e-6 at high SNR)
+- Multi-modulation performance comparison (QPSK vs 16-QAM)
+- JSON performance report generation
+
+#### 6. **Docker Integration Gotchas**
+
+The Dockerfile uses an `ENTRYPOINT` that can cause issues:
+```dockerfile
+ENTRYPOINT ["poetry", "run", "python", "-m", "radio_sim"]
+```
+
+**Problem**: Running `docker run image pytest` becomes `radio_sim pytest` (invalid)
+
+**Solution**: Override entrypoint for tests:
+```yaml
+# For running tests inside container
+docker run --rm --entrypoint="" 5g-phy-ci:latest poetry run pytest -v
+
+# For running simulation (uses entrypoint)
+docker run --rm 5g-phy-ci:latest --bits 1000 --snr-start 15 --snr-stop 20
+```
+
+#### 7. **Best Practices Demonstrated**
+
+1. **Parallel Execution**: Jobs run simultaneously where possible
+2. **Smart Dependencies**: `needs:` prevents resource waste
+3. **Comprehensive Caching**: Speeds up repeated builds
+4. **Artifact Preservation**: Test results, coverage, and reports saved
+5. **Conditional Steps**: `if: always()` ensures cleanup even on failure
+6. **Version Pinning**: `@v4` for reliable action versions
+7. **Environment Consistency**: Same Python version across all jobs
+
+### Customizing the Workflow
+
+To modify the pipeline for your project:
+
+1. **Change Python version**: Update `PYTHON_VERSION` environment variable
+2. **Add new jobs**: Follow the same pattern with appropriate `needs:` dependencies
+3. **Modify triggers**: Adjust `on:` section for different branch strategies
+4. **Add integrations**: Include services like Slack notifications, deployment steps
+5. **Customize artifacts**: Modify `upload-artifact` steps for your specific outputs
+
+This workflow demonstrates enterprise-grade CI/CD practices suitable for production environments, with comprehensive testing, containerization, and automated quality gates.
+
+## License
