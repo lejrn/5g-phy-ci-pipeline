@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 6.1.1 (Python 3.10.12 on linux)" generated="20250601 00:20:29.012" rpa="false" schemaversion="4">
+<suite id="s1" name="Simulation Tests" source="/home/lrn/Repos/5g-phy-ci-pipeline/robot/simulation_tests.robot">
+<test id="s1-t1" name="QPSK Simulation Should Complete Successfully" line="18">
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--modulation</arg>
+<arg>QPSK</arg>
+<arg>--bits</arg>
+<arg>${TEST_BITS}</arg>
+<arg>--snr-start</arg>
+<arg>${MIN_SNR}</arg>
+<arg>--snr-stop</arg>
+<arg>${MAX_SNR}</arg>
+<arg>--snr-step</arg>
+<arg>${SNR_STEP}</arg>
+<arg>timeout=60s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:29.035" level="INFO">Starting process:
+python -m radio_sim.main --modulation QPSK --bits 5000 --snr-start 10 --snr-stop 20 --snr-step 2</msg>
+<msg timestamp="20250601 00:20:29.037" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:29.438" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:29.439" level="INFO">${result} = &lt;result object with rc 0&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:29.034" endtime="20250601 00:20:29.439"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:29.440" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:29.439" endtime="20250601 00:20:29.440"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Simulation completed successfully</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:29.440" endtime="20250601 00:20:29.440"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>QPSK</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:29.440" endtime="20250601 00:20:29.441"/>
+</kw>
+<kw name="Log" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20250601 00:20:29.441" level="INFO">5G PHY CI Pipeline - OFDM Simulation
+Modulation: QPSK
+Bits per simulation: 5000
+SNR range: 10 to 20 dB (step: 2)
+--------------------------------------------------
+SNR: 10 dB, BER: 0.00e+00
+SNR: 12 dB, BER: 0.00e+00
+SNR: 14 dB, BER: 0.00e+00
+SNR: 16 dB, BER: 0.00e+00
+SNR: 18 dB, BER: 0.00e+00
+SNR: 20 dB, BER: 0.00e+00
+--------------------------------------------------
+Simulation completed successfully!
+Best BER: 0.00e+00 at 10 dB</msg>
+<status status="PASS" starttime="20250601 00:20:29.441" endtime="20250601 00:20:29.441"/>
+</kw>
+<doc>Run QPSK simulation and verify it completes without errors</doc>
+<tag>qpsk</tag>
+<tag>simulation</tag>
+<tag>smoke</tag>
+<status status="PASS" starttime="20250601 00:20:29.034" endtime="20250601 00:20:29.441"/>
+</test>
+<test id="s1-t2" name="16-QAM Simulation Should Complete Successfully" line="38">
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--modulation</arg>
+<arg>16QAM</arg>
+<arg>--bits</arg>
+<arg>${TEST_BITS}</arg>
+<arg>--snr-start</arg>
+<arg>15</arg>
+<arg>--snr-stop</arg>
+<arg>25</arg>
+<arg>--snr-step</arg>
+<arg>${SNR_STEP}</arg>
+<arg>timeout=60s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:29.442" level="INFO">Starting process:
+python -m radio_sim.main --modulation 16QAM --bits 5000 --snr-start 15 --snr-stop 25 --snr-step 2</msg>
+<msg timestamp="20250601 00:20:29.445" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:29.846" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:29.847" level="INFO">${result} = &lt;result object with rc 0&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:29.442" endtime="20250601 00:20:29.847"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:29.849" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:29.847" endtime="20250601 00:20:29.849"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Simulation completed successfully</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:29.850" endtime="20250601 00:20:29.851"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>16QAM</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:29.851" endtime="20250601 00:20:29.852"/>
+</kw>
+<kw name="Log" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20250601 00:20:29.853" level="INFO">5G PHY CI Pipeline - OFDM Simulation
+Modulation: 16QAM
+Bits per simulation: 5000
+SNR range: 15 to 25 dB (step: 2)
+--------------------------------------------------
+SNR: 15 dB, BER: 3.91e-03
+WARNING: High BER (3.91e-03) at SNR 15 dB
+SNR: 17 dB, BER: 0.00e+00
+SNR: 19 dB, BER: 0.00e+00
+SNR: 21 dB, BER: 0.00e+00
+SNR: 23 dB, BER: 0.00e+00
+SNR: 25 dB, BER: 0.00e+00
+--------------------------------------------------
+Simulation completed successfully!
+Best BER: 0.00e+00 at 17 dB</msg>
+<status status="PASS" starttime="20250601 00:20:29.853" endtime="20250601 00:20:29.853"/>
+</kw>
+<doc>Run 16-QAM simulation and verify it completes without errors</doc>
+<tag>16qam</tag>
+<tag>simulation</tag>
+<tag>smoke</tag>
+<status status="PASS" starttime="20250601 00:20:29.441" endtime="20250601 00:20:29.854"/>
+</test>
+<test id="s1-t3" name="BER Performance Should Meet Requirements" line="58">
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--modulation</arg>
+<arg>QPSK</arg>
+<arg>--bits</arg>
+<arg>20000</arg>
+<arg>--snr-start</arg>
+<arg>15</arg>
+<arg>--snr-stop</arg>
+<arg>20</arg>
+<arg>--snr-step</arg>
+<arg>1</arg>
+<arg>timeout=120s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:29.856" level="INFO">Starting process:
+python -m radio_sim.main --modulation QPSK --bits 20000 --snr-start 15 --snr-stop 20 --snr-step 1</msg>
+<msg timestamp="20250601 00:20:29.859" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:30.260" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:30.261" level="INFO">${result} = &lt;result object with rc 0&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:29.855" endtime="20250601 00:20:30.261"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:30.262" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:30.261" endtime="20250601 00:20:30.262"/>
+</kw>
+<kw name="Should Not Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>WARNING: High BER</arg>
+<doc>Fails if ``container`` contains ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:30.262" endtime="20250601 00:20:30.262"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Simulation completed successfully</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:30.262" endtime="20250601 00:20:30.263"/>
+</kw>
+<kw name="Log" library="BuiltIn">
+<arg>BER Performance Test Results:</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20250601 00:20:30.263" level="INFO">BER Performance Test Results:</msg>
+<status status="PASS" starttime="20250601 00:20:30.263" endtime="20250601 00:20:30.263"/>
+</kw>
+<kw name="Log" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20250601 00:20:30.263" level="INFO">5G PHY CI Pipeline - OFDM Simulation
+Modulation: QPSK
+Bits per simulation: 20000
+SNR range: 15 to 20 dB (step: 1)
+--------------------------------------------------
+SNR: 15 dB, BER: 0.00e+00
+SNR: 16 dB, BER: 0.00e+00
+SNR: 17 dB, BER: 0.00e+00
+SNR: 18 dB, BER: 0.00e+00
+SNR: 19 dB, BER: 0.00e+00
+SNR: 20 dB, BER: 0.00e+00
+--------------------------------------------------
+Simulation completed successfully!
+Best BER: 0.00e+00 at 15 dB</msg>
+<status status="PASS" starttime="20250601 00:20:30.263" endtime="20250601 00:20:30.263"/>
+</kw>
+<doc>Verify that BER meets performance thresholds at high SNR</doc>
+<tag>ber</tag>
+<tag>critical</tag>
+<tag>performance</tag>
+<status status="PASS" starttime="20250601 00:20:29.854" endtime="20250601 00:20:30.263"/>
+</test>
+<test id="s1-t4" name="Simulation Should Handle Different Bit Counts" line="84">
+<for flavor="IN">
+<var>${bits}</var>
+<value>1000</value>
+<value>5000</value>
+<value>10000</value>
+<iter>
+<var name="${bits}">1000</var>
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--bits</arg>
+<arg>${bits}</arg>
+<arg>--snr-start</arg>
+<arg>15</arg>
+<arg>--snr-stop</arg>
+<arg>20</arg>
+<arg>--snr-step</arg>
+<arg>5</arg>
+<arg>timeout=60s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:30.264" level="INFO">Starting process:
+python -m radio_sim.main --bits 1000 --snr-start 15 --snr-stop 20 --snr-step 5</msg>
+<msg timestamp="20250601 00:20:30.266" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:30.667" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:30.667" level="INFO">${result} = &lt;result object with rc 0&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:30.264" endtime="20250601 00:20:30.667"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:30.668" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:30.667" endtime="20250601 00:20:30.668"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Bits per simulation: ${bits}</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:30.668" endtime="20250601 00:20:30.668"/>
+</kw>
+<kw name="Log" library="BuiltIn">
+<arg>Tested with ${bits} bits successfully</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20250601 00:20:30.668" level="INFO">Tested with 1000 bits successfully</msg>
+<status status="PASS" starttime="20250601 00:20:30.668" endtime="20250601 00:20:30.668"/>
+</kw>
+<status status="PASS" starttime="20250601 00:20:30.264" endtime="20250601 00:20:30.668"/>
+</iter>
+<iter>
+<var name="${bits}">5000</var>
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--bits</arg>
+<arg>${bits}</arg>
+<arg>--snr-start</arg>
+<arg>15</arg>
+<arg>--snr-stop</arg>
+<arg>20</arg>
+<arg>--snr-step</arg>
+<arg>5</arg>
+<arg>timeout=60s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:30.669" level="INFO">Starting process:
+python -m radio_sim.main --bits 5000 --snr-start 15 --snr-stop 20 --snr-step 5</msg>
+<msg timestamp="20250601 00:20:30.671" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:31.072" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:31.073" level="INFO">${result} = &lt;result object with rc 0&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:30.669" endtime="20250601 00:20:31.073"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:31.074" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:31.073" endtime="20250601 00:20:31.074"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Bits per simulation: ${bits}</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:31.075" endtime="20250601 00:20:31.076"/>
+</kw>
+<kw name="Log" library="BuiltIn">
+<arg>Tested with ${bits} bits successfully</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20250601 00:20:31.076" level="INFO">Tested with 5000 bits successfully</msg>
+<status status="PASS" starttime="20250601 00:20:31.076" endtime="20250601 00:20:31.076"/>
+</kw>
+<status status="PASS" starttime="20250601 00:20:30.669" endtime="20250601 00:20:31.076"/>
+</iter>
+<iter>
+<var name="${bits}">10000</var>
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--bits</arg>
+<arg>${bits}</arg>
+<arg>--snr-start</arg>
+<arg>15</arg>
+<arg>--snr-stop</arg>
+<arg>20</arg>
+<arg>--snr-step</arg>
+<arg>5</arg>
+<arg>timeout=60s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:31.078" level="INFO">Starting process:
+python -m radio_sim.main --bits 10000 --snr-start 15 --snr-stop 20 --snr-step 5</msg>
+<msg timestamp="20250601 00:20:31.082" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:31.483" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:31.483" level="INFO">${result} = &lt;result object with rc 0&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:31.077" endtime="20250601 00:20:31.484"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:31.486" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:31.484" endtime="20250601 00:20:31.486"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Bits per simulation: ${bits}</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:31.486" endtime="20250601 00:20:31.487"/>
+</kw>
+<kw name="Log" library="BuiltIn">
+<arg>Tested with ${bits} bits successfully</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20250601 00:20:31.487" level="INFO">Tested with 10000 bits successfully</msg>
+<status status="PASS" starttime="20250601 00:20:31.487" endtime="20250601 00:20:31.488"/>
+</kw>
+<status status="PASS" starttime="20250601 00:20:31.077" endtime="20250601 00:20:31.488"/>
+</iter>
+<status status="PASS" starttime="20250601 00:20:30.264" endtime="20250601 00:20:31.488"/>
+</for>
+<doc>Test simulation with different numbers of bits</doc>
+<tag>parameterized</tag>
+<tag>robustness</tag>
+<status status="PASS" starttime="20250601 00:20:30.263" endtime="20250601 00:20:31.488"/>
+</test>
+<test id="s1-t5" name="Help Option Should Work" line="104">
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--help</arg>
+<arg>timeout=30s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:31.490" level="INFO">Starting process:
+python -m radio_sim.main --help</msg>
+<msg timestamp="20250601 00:20:31.492" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:31.894" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:31.894" level="INFO">${result} = &lt;result object with rc 0&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:31.489" endtime="20250601 00:20:31.894"/>
+</kw>
+<kw name="Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:31.897" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:31.895" endtime="20250601 00:20:31.897"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>5G PHY OFDM Simulation Pipeline</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:31.897" endtime="20250601 00:20:31.898"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>--modulation</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:31.898" endtime="20250601 00:20:31.898"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>--bits</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:31.898" endtime="20250601 00:20:31.898"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>--snr-start</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:31.898" endtime="20250601 00:20:31.899"/>
+</kw>
+<doc>Verify that help option displays usage information</doc>
+<tag>cli</tag>
+<tag>help</tag>
+<tag>smoke</tag>
+<status status="PASS" starttime="20250601 00:20:31.488" endtime="20250601 00:20:31.899"/>
+</test>
+<test id="s1-t6" name="Invalid Parameters Should Fail Gracefully" line="121">
+<kw name="Run Process" library="Process">
+<var>${result}</var>
+<arg>${SIMULATION_CMD}</arg>
+<arg>@{BASE_ARGS}</arg>
+<arg>--modulation</arg>
+<arg>INVALID</arg>
+<arg>timeout=30s</arg>
+<arg>cwd=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<arg>env:PYTHONPATH=/home/lrn/Repos/5g-phy-ci-pipeline</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20250601 00:20:31.900" level="INFO">Starting process:
+python -m radio_sim.main --modulation INVALID</msg>
+<msg timestamp="20250601 00:20:31.903" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20250601 00:20:32.304" level="INFO">Process completed.</msg>
+<msg timestamp="20250601 00:20:32.304" level="INFO">${result} = &lt;result object with rc 2&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:31.899" endtime="20250601 00:20:32.304"/>
+</kw>
+<kw name="Should Not Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>0</arg>
+<doc>Fails if objects are equal after converting them to integers.</doc>
+<msg timestamp="20250601 00:20:32.305" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20250601 00:20:32.305" endtime="20250601 00:20:32.305"/>
+</kw>
+<kw name="Should Contain" library="BuiltIn">
+<arg>${result.stderr}</arg>
+<arg>invalid choice</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20250601 00:20:32.305" endtime="20250601 00:20:32.306"/>
+</kw>
+<doc>Test that invalid parameters are handled properly</doc>
+<tag>error-handling</tag>
+<tag>negative</tag>
+<status status="PASS" starttime="20250601 00:20:31.899" endtime="20250601 00:20:32.306"/>
+</test>
+<doc>5G PHY OFDM Simulation Test Suite
+Tests the radio simulation pipeline end-to-end</doc>
+<status status="PASS" starttime="20250601 00:20:29.013" endtime="20250601 00:20:32.306"/>
+</suite>
+<statistics>
+<total>
+<stat pass="6" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+<stat pass="1" fail="0" skip="0">16qam</stat>
+<stat pass="1" fail="0" skip="0">ber</stat>
+<stat pass="1" fail="0" skip="0">cli</stat>
+<stat pass="1" fail="0" skip="0">critical</stat>
+<stat pass="1" fail="0" skip="0">error-handling</stat>
+<stat pass="1" fail="0" skip="0">help</stat>
+<stat pass="1" fail="0" skip="0">negative</stat>
+<stat pass="1" fail="0" skip="0">parameterized</stat>
+<stat pass="1" fail="0" skip="0">performance</stat>
+<stat pass="1" fail="0" skip="0">qpsk</stat>
+<stat pass="1" fail="0" skip="0">robustness</stat>
+<stat pass="2" fail="0" skip="0">simulation</stat>
+<stat pass="3" fail="0" skip="0">smoke</stat>
+</tag>
+<suite>
+<stat pass="6" fail="0" skip="0" id="s1" name="Simulation Tests">Simulation Tests</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
