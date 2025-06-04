@@ -1,13 +1,12 @@
 *** Settings ***
-Documentation    5G PHY OFDM Simulation Test Suite (Docker Compatible)
-...              Tests the radio simulation pipeline end-to-end in Docker container
+Documentation    5G PHY OFDM Simulation Test Suite (Docker Container)
+...              Tests the radio simulation pipeline end-to-end inside Docker container
 Library          Process
 Library          OperatingSystem
 Library          String
 Library          DateTime
 
 *** Variables ***
-${DOCKER_IMAGE}      5g-phy-ci
 ${TEST_BITS}         5000
 ${MIN_SNR}           10
 ${MAX_SNR}           20
@@ -18,7 +17,7 @@ QPSK Simulation Should Complete Successfully
     [Documentation]    Run QPSK simulation and verify it completes without errors
     [Tags]    simulation    qpsk    smoke
     
-    ${result}=    Run Process    docker    run    --rm    ${DOCKER_IMAGE}
+    ${result}=    Run Process    poetry    run    python    -m    radio_sim
     ...    --modulation    QPSK
     ...    --bits    ${TEST_BITS}
     ...    --snr-start    ${MIN_SNR}
@@ -35,7 +34,7 @@ QPSK Simulation Should Complete Successfully
     [Documentation]    Run 16-QAM simulation and verify it completes without errors
     [Tags]    simulation    16qam    smoke
     
-    ${result}=    Run Process    docker    run    --rm    ${DOCKER_IMAGE}
+    ${result}=    Run Process    poetry    run    python    -m    radio_sim
     ...    --modulation    16QAM
     ...    --bits    ${TEST_BITS}
     ...    --snr-start    15
@@ -53,7 +52,7 @@ BER Performance Should Meet Requirements
     [Tags]    performance    ber    critical
     
     # Run simulation with more bits for accurate BER measurement
-    ${result}=    Run Process    docker    run    --rm    ${DOCKER_IMAGE}
+    ${result}=    Run Process    poetry    run    python    -m    radio_sim
     ...    --modulation    QPSK
     ...    --bits    20000
     ...    --snr-start    15
@@ -76,7 +75,7 @@ Simulation Should Handle Different Bit Counts
     [Tags]    robustness    parameterized
     
     FOR    ${bits}    IN    1000    5000    10000
-        ${result}=    Run Process    docker    run    --rm    ${DOCKER_IMAGE}
+        ${result}=    Run Process    poetry    run    python    -m    radio_sim
         ...    --modulation    QPSK
         ...    --bits    ${bits}
         ...    --snr-start    15
@@ -93,7 +92,7 @@ Help Option Should Work
     [Documentation]    Verify that help option displays usage information
     [Tags]    cli    help    smoke
     
-    ${result}=    Run Process    docker    run    --rm    ${DOCKER_IMAGE}
+    ${result}=    Run Process    poetry    run    python    -m    radio_sim
     ...    --help
     ...    timeout=30s
     
@@ -108,7 +107,7 @@ Invalid Parameters Should Fail Gracefully
     [Tags]    error-handling    negative
     
     # Test invalid modulation
-    ${result}=    Run Process    docker    run    --rm    ${DOCKER_IMAGE}
+    ${result}=    Run Process    poetry    run    python    -m    radio_sim
     ...    --modulation    INVALID
     ...    timeout=30s
     
